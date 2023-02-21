@@ -50,7 +50,7 @@ final class LocalizationProvider {
         let data = localization.translations.map { string -> String in
             let stringForMessage: String
             if let newMessage = string.message, newMessage.replacingOccurrences(of: " ", with: "") != "" {
-                stringForMessage = "\n/* \(newMessage) */\n"
+                stringForMessage = "\n// \(newMessage)\n"
             } else {
                 stringForMessage = ""
             }
@@ -61,9 +61,8 @@ final class LocalizationProvider {
             } else {
                 return "\(stringForMessage)\"\(string.key)\" = \"\(string.value.escaped)\";"
             }
-        }.reduce("") { prev, next in
-            "\(prev)\n\(next)"
-        }.replacingOccurrences(of: "\n/*", with: "/*")
+        }
+            .joined(separator: "\n")
 
         do {
             try data.write(toFile: localization.path, atomically: false, encoding: .utf8)
@@ -138,7 +137,7 @@ final class LocalizationProvider {
             let parser = Parser(input: contentOfFileAsString)
             let localizationStrings = try parser.parse()
             os_log("Found %d keys for in %@ using built-in parser.", type: OSLogType.debug, localizationStrings.count, path.description)
-            return localizationStrings.sorted()
+            return localizationStrings
         } catch {
             // The parser could not parse the input. Fallback to NSDictionary
             os_log("Could not parse %@ as String", type: OSLogType.error, path.description)
